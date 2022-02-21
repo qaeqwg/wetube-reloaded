@@ -9,6 +9,11 @@ const PORT = 4000
 // express app 생성 
 const app = express();
 const logger = morgan("dev");
+
+// pug를 view engine 으로 설정
+app.set("view engine", "pug");
+// views의 디렉터리를 현재 디렉터리 + /src/views로 설정
+app.set("views", process.cwd() + "/src/views");
 // global middleware 생성 
 app.use(logger);
 

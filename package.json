@@ -19,7 +19,8 @@
     "express": "^4.17.2",
     "morgan": "^1.10.0",
     "node": "^17.4.0",
-    "node.js": "^0.0.1-security"
+    "node.js": "^0.0.1-security",
+    "pug": "^3.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.17.4",
