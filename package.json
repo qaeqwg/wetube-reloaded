@@ -7,7 +7,7 @@
     "url": "git+https://github.com/qaeqwg/wetube-reloaded.git"
   },
   "scripts": {
-    "dev": "nodemon --exec babel-node src/server.js"
+    "dev": "nodemon --exec babel-node src/init.js"
   },
   "author": "kth",
   "license": "MIT",
@@ -17,6 +17,7 @@
   "homepage": "https://github.com/qaeqwg/wetube-reloaded#readme",
   "dependencies": {
     "express": "^4.17.2",
+    "mongoose": "^6.2.3",
     "morgan": "^1.10.0",
     "node": "^17.4.0",
     "node.js": "^0.0.1-security",

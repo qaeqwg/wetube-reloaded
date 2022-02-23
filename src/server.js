@@ -1,10 +1,10 @@
+import "./db";
+import "./models/Video";
 import express from "express";
 import morgan from "morgan";
 import globalRouter from "./routers/globalRouter";
 import userRouter from "./routers/userRouter";
 import videoRouter from "./routers/videoRouter";
-
-const PORT = 4000
 
 // express app 생성 
 const app = express();
@@ -16,15 +16,10 @@ app.set("view engine", "pug");
 app.set("views", process.cwd() + "/src/views");
 // global middleware 생성 
 app.use(logger);
-
+// express가 페이지의 form을 이해하도록 javascript로 변환해주는 middleware
+app.use(express.urlencoded({ extended: true }));
 app.use("/", globalRouter);
 app.use("/videos", videoRouter);
 app.use("/users", userRouter);
 
-// callback 생성 
-const handleListening = () => console.log(`Server listening on port http://localhost:${PORT}`);
-
-// 서버가 request를 상시 listen하게 설정
-// port와 callback을 설정 
-// callback이란? request를 받으면 그에 대한 응답으로 작동하는 함수
-app.listen(PORT, handleListening);
+export default app
