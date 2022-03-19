@@ -1,8 +1,8 @@
 import User from "../models/User";
 import fetch from "node-fetch";
 import bcrypt from "bcrypt";
-import { token } from "morgan";
-import { redirect } from "express/lib/response";
+
+const qs = require("qs");
 
 export const getJoin = (req, res) => res.render("Join", { pageTitle: "Join" });
 export const postJoin = async (req, res) => {
@@ -125,6 +125,37 @@ export const finishGithubLogin = async (req, res) => {
     } else {
         return res.redirect("/login");
     }
+};
+
+export const startKakaologin = async (req, res) => {
+    const baseURL = "https://kauth.kakao.com/oauth/authorize";
+    const config = {
+        client_id: process.env.KAKAO_CLIENT,
+        redirect_uri: "http://localhost:443/users/kakao/finish",
+        response_type: "code",
+    };
+    const params = new URLSearchParams(config).toString();
+    return res.redirect(`${baseURL}?${params}`);
+};
+
+export const finishKakaologin = async (req, res) => {
+    const bodyData = {
+        grant_type: "authorization_code",
+        client_id: process.env.KAKAO_CLIENT,
+        redirect_uri: `https://localhost:443/users/kakao/finish`,
+        code: req.query.code,
+        client_secret: process.env.KAKAO_SECRET,
+    };
+    const queryStringBody = qs.stringify(bodyData).toString('utf8');
+    console.log(queryStringBody);
+    const tokenRequest = await fetch("https://kauth.kakao.com/oauth/token", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
+        },
+        body: queryStringBody,
+    });
+    console.log(tokenRequest);
 };
 
 export const getLogin = (req, res) => res.render("login", { pageTitle: "Login" });
