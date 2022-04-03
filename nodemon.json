@@ -1,0 +1,10 @@
+{
+    // 아래의 파일들은 변경되어도 nodemon이 무시하여 
+    // nodemon이 서버를 재시작시키지 않는다
+    "ignore": [
+        "webpack.config.js",
+        "src/client/*",
+        "assets/*"
+    ],
+    "exec": "babel-node src/init.js"
+}

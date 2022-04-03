@@ -3,6 +3,7 @@ html(lang="ko")
     head 
         title #{pageTitle} | #{siteName}
         link(rel="stylesheet" href="https://unpkg.com/mvp.css")
+        link(rel="stylesheet" href="/static/css/styles.css")
     body 
         header 
             h1=pageTitle
@@ -12,9 +13,14 @@ html(lang="ko")
                         a(href="/") Home
                     if loggedIn 
                         li 
+                            a(href="/users/edit") Edit Profile
+                        li 
                             a(href="/users/logout") Log Out
                         li 
-                            a(href="/my-profile") #{loggedInUser.username}의 profile
+                            a(href="/videos/upload") Upload Video
+                    
+                        li 
+                            a(href=`/users/${loggedInUser._id}`) My Profile
                     else
                         li 
                             a(href="/join") Join
@@ -22,8 +28,8 @@ html(lang="ko")
                             a(href="/login") Login
                     li 
                         a(href="/search") Search
-                    li 
-                        a(href="/videos/upload") Upload Video
         main 
             block content
     include partials/footer.pug
+    //- pug 파일과 js 파일을 연결
+    script(src="/static/js/main.js")

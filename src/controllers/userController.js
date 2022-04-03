@@ -1,4 +1,5 @@
 import User from "../models/User";
+import Video from "../models/Video";
 import fetch from "node-fetch";
 import bcrypt from "bcrypt";
 
@@ -24,10 +25,16 @@ export const postJoin = async (req, res) => {
     }
     try {
         await User.create({
-            name, username, email, password, location,
+            name,
+            username,
+            email,
+            password,
+            location,
+            socialOnly: false,
         });
         return res.redirect("/login");
     } catch (error) {
+        console.log(error);
         return res.status(400).render("join",
             {
                 pageTitle,
@@ -142,27 +149,119 @@ export const finishKakaologin = async (req, res) => {
     const bodyData = {
         grant_type: "authorization_code",
         client_id: process.env.KAKAO_CLIENT,
-        redirect_uri: `https://localhost:443/users/kakao/finish`,
+        redirect_uri: `http://localhost:443/users/kakao/finish`,
         code: req.query.code,
-        client_secret: process.env.KAKAO_SECRET,
     };
-    const queryStringBody = qs.stringify(bodyData).toString('utf8');
-    console.log(queryStringBody);
-    const tokenRequest = await fetch("https://kauth.kakao.com/oauth/token", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
-        },
-        body: queryStringBody,
-    });
-    console.log(tokenRequest);
+    const queryStringBody = qs.stringify(bodyData);
+    try {
+        const tokenRequest = await (await fetch("https://kauth.kakao.com/oauth/token", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
+            },
+            body: queryStringBody,
+        })).json();
+        if ("access_token" in tokenRequest) {
+            const apiURL = "https://kapi.kakao.com/v1/user/access_token_info";
+            const userData = await (await fetch(apiURL, {
+                headers: {
+                    Authorization: `Bearer ${tokenRequest.access_token}`,
+                }
+            })).json();
+            const InfoURL = "https://kapi.kakao.com/v2/user/me";
+            const userInfo = await (await fetch(InfoURL, {
+                headers: {
+                    Authorization: `Bearer ${tokenRequest.access_token}`,
+                    "Content-type": "application/x-www-form-urlencoded;charset=utf-8",
+                }
+            })).json();
+            console.log(userInfo);
+        }
+    } catch (error) {
+        return res.redirect("/login");
+    }
 };
 
 export const getLogin = (req, res) => res.render("login", { pageTitle: "Login" });
+export const getEdit = (req, res) => {
+    return res.render("edit-profile", { pageTitle: `Edit Profile` });
+}
+export const postEdit = async (req, res) => {
+    const {
+        session: {
+            user: { _id },
+        },
+        body: {
+            name,
+            email,
+            username,
+            location
+        },
+        file,
+    } = req;
+    const updatedUser = await User.findByIdAndUpdate(_id, {
+        avatarUrl: file ? file.path : avatarUrl,
+        name,
+        email,
+        username,
+        location,
+    }, { new: true });
+    req.session.user = updatedUser;
+    return res.redirect("/users/edit");
+}
+
+export const getChangePassword = (req, res) => {
+    if (req.session.user.socialOnly === true) {
+        return res.redirect("/");
+    }
+    return res.render("users/change-password", { pageTitle: "Change Password" });
+}
+export const postChangePassword = async (req, res) => {
+    const {
+        session: {
+            user: { _id },
+        },
+        body: {
+            oldPassword,
+            newPassword,
+            newPasswordConfirmation,
+        },
+    } = req;
+    const user = await User.findById(_id);
+    const ok = await bcrypt.compare(oldPassword, user.password);
+    if (!ok) {
+        return res.status(400).render("users/change-password",
+            {
+                pageTitle: "Change Password",
+                errorMessage: "The current password is incorrect",
+            });
+    }
+    if (newPassword != newPasswordConfirmation) {
+        return res.status(400).render("users/change-password",
+            {
+                pageTitle: "Change Password",
+                errorMessage: "The password does not match confirmation",
+            });
+    }
+    user.password = newPassword;
+    await user.save();
+    return res.redirect("/users/logout");
+}
 export const edit = (req, res) => res.send("Edit User");
 export const remove = (req, res) => res.send("Remove User");
 export const logout = (req, res) => {
     req.session.destroy();
     return res.redirect("/");
 }
-export const see = (req, res) => res.send("See");
+export const see = async (req, res) => {
+    const { id } = req.params;
+    const user = await User.findById(id).populate("videos");
+    if (!user) {
+        return res.status(404).render("404", { pageTitle: "User not found" });
+    }
+    return res.render("users/profile", {
+        pageTitle: user.name,
+        user,
+    });
+
+}

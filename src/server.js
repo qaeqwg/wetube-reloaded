@@ -38,6 +38,9 @@ app.use(
 );
 
 app.use(localsMiddleware);
+// express에게 유저들이 이 폴더 안의 파일들을 볼 수 있게 권한 부여
+app.use("/uploads", express.static("uploads"));
+app.use("/static", express.static("assets"));
 app.use("/", rootRouter);
 app.use("/videos", videoRouter);
 app.use("/users", userRouter);
